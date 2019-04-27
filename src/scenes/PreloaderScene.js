@@ -10,11 +10,17 @@ export default class PreloaderScene extends BaseScene {
 		console.log("preloader loading");
 
 		// TODO preload preloader assets
-		this.load.image('player', 'assets/ico_wizard.png');
-		this.load.image('platform', 'assets/platform.png');
-		this.load.image('star', 'assets/star.png');
-		this.load.image('bomb', 'assets/bomb.png');
-		this.load.spritesheet('dude', 'assets/dude.png', { frameWidth: 32, frameHeight: 48 });
+
+		this.load.image('par_3', 'assets/par/Forest-01-002.png');
+		this.load.image('par_2', 'assets/par/Forest-01-003.png');
+		this.load.image('par_1', 'assets/par/Forest-01-004.png');
+		this.load.image('par_0', 'assets/par/Forest-01-005.png');
+
+
+		this.load.multiatlas('atlas', 'assets/atlas.json', "assets/");
+		this.load.json("ui_menu", "assets/menu.json");
+		this.load.json('btn', 'assets/btn_red.json');
+		this.load.spritesheet('dude', 'assets/dude1.png', { frameWidth: 41, frameHeight: 61 });
 
 
 		this.shield = this.add.rectangle(0, 0, 100, 100, 0x0)
@@ -32,8 +38,8 @@ export default class PreloaderScene extends BaseScene {
 		console.log("preloader creating");
 
 		// TODO init scenes
-		game.scene.start("game");
-		//game.scene.start("");
+		//game.scene.start("game");
+		game.scene.start("menu");
 
 		super.create();
 	}
@@ -48,3 +54,4 @@ export default class PreloaderScene extends BaseScene {
 		this.shield.height = height;
 	}
 }
+

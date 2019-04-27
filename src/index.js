@@ -10,14 +10,18 @@ var phaserConfig = {
 	type: Phaser.AUTO,
 	parent: "phaser-canvas",
 	backgroundColor: "#000000",
-	width: 800,// window.innerWidth,
-	height: 600, //window.innerHeight,
+	width: 1920,// window.innerWidth,
+	height: 1080, //window.innerHeight,
+	scale: {
+		mode: Phaser.Scale.FIT,
+		autoCenter: Phaser.Scale.CENTER_BOTH
+	},
 	scene: [
 		BootScene,
 		PreloaderScene,
 		MenuScene,
 		GameScene,
-		HUDScene
+		//HUDScene
 	],
 	plugins: {
 		global: [
@@ -27,8 +31,8 @@ var phaserConfig = {
 	physics: {
 		default: 'arcade',
 		arcade: {
-			debug: true,
-			gravity: { y: 800 }
+			//debug: true,
+			gravity: { y: 1400 }
 		}
 	},
 };

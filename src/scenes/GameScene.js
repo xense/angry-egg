@@ -1,30 +1,34 @@
 import BaseScene from "./BaseScene";
+import Models from "../models/Models";
 
-let platforms;
-let platformsList = [];
 let lastPlatformY;
 let lastPlatformRight;
+let platforms;
+let platformsList = [];
 let enemies;
 let enemiesList = [];
 let stars;
 let starsList = [];
+let livesGroup;
+let livesList = [];
 let player;
 let cursors;
 let eggParts = 0;
 let eggFinishTime = 0;
-let speed = 200;
-let hp = 100;
 
-let eggDuration = 5000;
+let speed = 300;
+const eggDuration = 10000;
+const platformWidth = 640;
+
+let cdBack;
 let cdRect;
-let timeMS;
-
-let hpRect;
+let timeMS = 0;
 let lives = 5;
-let livesSprites = [];
-
 let score = 0;
+
 let isChick = true;
+
+let pars = [];
 
 export default class GameScene extends BaseScene {
 	constructor() {
@@ -39,89 +43,150 @@ export default class GameScene extends BaseScene {
 	create() {
 		super.create();
 
-		this.add.rectangle(400, 30, 100, 20, 0x00ff00);
-		cdRect = this.add.rectangle(400, 30, 100, 20, 0xff0000);
+		// resetting all
+		platformsList = [];
+		enemiesList = [];
+		starsList = [];
+		livesList = [];
+		eggParts = 0;
+		eggFinishTime = 0;
+		timeMS = 0;
+		score = 0;
+		lives = 5;
+		pars = [];
+		isChick = true;
+		speed = 300;
 
-		/*this.add.rectangle(600, 30, 100, 20, 0xff0000);
-		hpRect = this.add.rectangle(600 - 50, 30, 100, 20, 0x00ff00).setOrigin(0, .5);*/
+		// parallaxes
+		this.add.image(0, 0, 'par_0').setOrigin(0);
+		for (let i = 1; i <= 3; i++) {
+			let par = this.add.container();
+			par.add(this.add.image(0, 0, 'par_' + i).setOrigin(0));
+			par.add(this.add.image(0, 0, 'par_' + i).setOrigin(0).setX(1920));
+			pars.unshift(par);
+		}
 
+		// groups
 		platforms = this.physics.add.staticGroup();
 		stars = this.physics.add.group({allowGravity: false});
 		enemies = this.physics.add.group({allowGravity: false});
+		livesGroup = this.physics.add.group({allowGravity: false});
 
+		// generate first platform
 		lastPlatformY = 500;
 		lastPlatformRight = 0;
 		this.createPlatform();
 
+		// create player
 		player = this.physics.add.sprite(300, 150, 'dude');
 
 		this.cameras.main.startFollow(player);
 		this.cameras.main.followOffset.set(-300, 0);
-		this.cameras.main.setBounds(0, 0, 800, 600);
+		this.cameras.main.setBounds(0, 0, 1920, 1080);
 
 		this.physics.add.collider(player, platforms);
 
 		this.physics.add.overlap(player, stars, this.collectStar, null, this);
 		this.physics.add.overlap(player, enemies, this.collectEnemy, null, this);
+		this.physics.add.overlap(player, livesGroup, this.collectLive, null, this);
 
+		// input
 		cursors = this.input.keyboard.createCursorKeys();
 		this.input.on("pointerdown", this.jump, this);
 
-		this.txtParts = this.add.text(30, 30, 'egg parts: 0').setOrigin(0);
-		this.txtScore = this.add.text(30, 60, 'score: 0').setOrigin(0);
-		this.txtLives = this.add.text(30, 90, 'score: 0').setOrigin(0);
+		// HUD
+		let textStyle = {
+			fontFamily: "Arial",
+			fontStyle: "bold",
+			fontSize: 64,
+			stroke: "#000000",
+			strokeThickness: 6
+		};
+		this.txtParts = this.add.text(30, 30, 'parts: 0/3', textStyle).setOrigin(0);
+		this.txtScore = this.add.text(30, 100, 'score: 0', textStyle).setOrigin(0);
+		this.txtLives = this.add.text(30, 170, 'lives: ' + lives.toString(), textStyle).setOrigin(0);
 
-		this.txtEggMode = this.add.text(400, 300, 'EGG MODE!');
+		this.txtEggMode = this.add.text(1920 / 2, 100, 'EGG MODE!', textStyle).setOrigin(0.5);
 		this.txtEggMode.visible = false;
+		// egg cooldown indicator
+		cdBack = this.add.rectangle(1920 / 2, 200, 400, 50, 0x00ff00).setVisible(false);
+		cdRect = this.add.rectangle(1920 / 2, 200, 400, 50, 0xff0000).setVisible(false);
 
+
+		// player anims
 		this.anims.create({
 			key: 'right',
-			frames: this.anims.generateFrameNumbers('dude', { start: 5, end: 8 }),
+			frames: this.anims.generateFrameNumbers('dude', {start: 5, end: 8}),
 			frameRate: 10,
 			repeat: -1
 		});
 
+		/*this.anims.create({
+			key: 'egg',
+			frames: this.anims.generateFrameNumbers('dude', {start: 4, end: 4}),
+			frameRate: 10,
+			repeat: -1
+		});*/
+
 		this.anims.create({
 			key: 'egg',
-			frames: this.anims.generateFrameNumbers('dude', { start: 4, end: 4 }),
-			frameRate: 10,
+			frames: [
+				{ key: 'atlas', frame: 'egg' },
+			],
+			frameRate: 8,
 			repeat: -1
 		});
 
 		player.anims.play('right', true);
+
+		// fullscreen button
+		let btnClip = this.add.ui_component(
+			game.cache.json.get('btn'),
+			['atlas']
+		);
+		btnClip.groupX = 1600;
+		btnClip.groupY = 30;
+		this.btn = new PhaserComps.UIComponents.UIButton();
+		this.btn.appendClip(btnClip);
+		this.btn.label = "Fullscreen";
+		this.btn.on(PhaserComps.UIComponents.UIButton.EVENT_CLICK, this.onBtnFullScreen, this)
 	}
 
 	createPlatform() {
-		let platform = platforms.create(lastPlatformRight + 200, lastPlatformY, 'platform');
+		let platformOffset = 100;
+		let platform = platforms.create(lastPlatformRight + platformWidth / 2 + platformOffset, lastPlatformY, 'atlas', 'platform1');
 		//lastPlatformRight = platform.x + platform.width / 2;
 		platformsList.push(platform);
 		if (lastPlatformY < 100) {
 			lastPlatformY = 100;
 		}
 
-		let gotElement = false;
-		if (Math.random() < 1) {
-			let objX = Phaser.Math.Between(1,3) * 100 + lastPlatformRight;
-			if (Math.random() > .5) {
-				let enemy = enemies.create(objX, lastPlatformY - 40, 'bomb');
-				enemiesList.push(enemy);
-			} else {
-				let star = stars.create(objX, lastPlatformY - 40, 'star');
-				starsList.push(star);
-			}
+		let objX = Phaser.Math.Between(1, 3) * platformWidth / 4 + lastPlatformRight + platformOffset;
+		if (Math.random() < 0.05) {
+			livesList.push(
+				livesGroup.create(objX, lastPlatformY - 120, 'dude', 4)
+			)
+		} else if (Math.random() > .5) {
+			enemiesList.push(
+				enemies.create(objX, lastPlatformY - 100, 'atlas', 'bomb1')
+			);
+		} else {
+			starsList.push(
+				stars.create(objX, lastPlatformY - 100, 'atlas', 'egg_part')
+			);
 		}
 
-		lastPlatformY = Phaser.Math.Between(lastPlatformY - 50, 500);
+		lastPlatformY = Phaser.Math.Between(lastPlatformY - 50, game.scale.gameSize.height - 100);
 	}
 
 	update(time, deltaTime) {
 		timeMS = time;
-		this.txtLives.text = 'lives: ' + lives.toString();
-		this.txtParts.text = 'parts: ' + eggParts.toString();
-		this.txtScore.text = 'score: ' + score.toString();
+		let gameWidth = game.scale.gameSize.width;
 
-		if(player.y > game.config.height){
+
+		if (player.y > game.config.height) {
 			this.gameOver();
+			return;
 		}
 
 		//hpRect.width = hp;
@@ -129,7 +194,7 @@ export default class GameScene extends BaseScene {
 		if (timeLeft < 0) {
 			this.switchToChick();
 		} else {
-			cdRect.width = 100 - 100 * timeLeft;
+			cdRect.width = 400 - 400 * timeLeft;
 		}
 
 		if (cursors.up.isDown) {
@@ -138,13 +203,14 @@ export default class GameScene extends BaseScene {
 
 		let rightestX = 0;
 		let i = 0;
+		// move platforms
 		while (i < platformsList.length) {
 			let platform = platformsList[i];
 			platform.x -= speed * (deltaTime / 1000);
 			if (rightestX < platform.x + platform.width / 2) {
 				rightestX = platform.x + platform.width / 2;
 			}
-			if (platform.x <= - platform.width / 2) {
+			if (platform.x <= -platform.width / 2) {
 				platformsList.splice(i, 1);
 				platform.destroy(true, true);
 			} else {
@@ -154,10 +220,24 @@ export default class GameScene extends BaseScene {
 		}
 
 		i = 0;
+		// move lives
+		while (i < livesList.length) {
+			let life = livesList[i];
+			life.x -= speed * (deltaTime / 1000);
+			if (life.x <= -life.width / 2) {
+				livesList.splice(i, 1);
+				life.destroy(true, true);
+			} else {
+				i++;
+			}
+		}
+
+		i = 0;
+		// move stars
 		while (i < starsList.length) {
 			let star = starsList[i];
 			star.x -= speed * (deltaTime / 1000);
-			if (star.x <= - star.width / 2) {
+			if (star.x <= -star.width / 2) {
 				starsList.splice(i, 1);
 				star.destroy(true, true);
 			} else {
@@ -166,10 +246,11 @@ export default class GameScene extends BaseScene {
 		}
 
 		i = 0;
+		// move enemies
 		while (i < enemiesList.length) {
 			let enemy = enemiesList[i];
 			enemy.x -= speed * (deltaTime / 1000);
-			if (enemy.x <= - enemy.width / 2) {
+			if (enemy.x <= -enemy.width / 2) {
 				enemiesList.splice(i, 1);
 				enemy.destroy(true, true);
 			} else {
@@ -177,10 +258,20 @@ export default class GameScene extends BaseScene {
 			}
 		}
 
-		if (rightestX < 800) {
+		// add new platform
+		if (rightestX < gameWidth) {
 			lastPlatformRight = rightestX;
 			//console.log(rightestX);
 			this.createPlatform();
+		}
+
+		// move parallaxes
+		for (i = 0; i < pars.length; i++) {
+			let par = pars[i];
+			par.x -= speed * (deltaTime / 1000) / (i + 1);
+			if (par.x < -gameWidth) {
+				par.x = 0;
+			}
 		}
 	}
 
@@ -188,17 +279,7 @@ export default class GameScene extends BaseScene {
 		if (!player.body.touching.down) {
 			return;
 		}
-		player.setVelocityY(-400);
-	}
-
-	onResize(gameSize) {
-		/*let width = gameSize.width;
-		let height = gameSize.height;
-
-		this.cameras.resize(width, height);
-
-		this.shield.width = width;
-		this.shield.height = height;*/
+		player.setVelocityY(-700);
 	}
 
 	collectStar(player, star) {
@@ -210,6 +291,7 @@ export default class GameScene extends BaseScene {
 			if (eggParts >= 3) {
 				this.startEggMode();
 			}
+			this.txtParts.text = 'parts: ' + eggParts.toString() + "/3";
 		}
 	}
 
@@ -218,19 +300,42 @@ export default class GameScene extends BaseScene {
 		enemy.disableBody(true, true);
 		enemy.destroy(true, true);
 		if (isChick) {
-			lives--;
-			if (lives < 0) {
-				this.gameOver();
-			} else {
-				this.removeLife();
-			}
+			this.removeLife();
 		} else {
 			score++;
+			this.cameras.main.flash();
+			this.txtScore.text = 'score: ' + score.toString();
+			if (score % 5 === 0) {
+				this.addLife();
+			}
 		}
 	}
 
+	collectLive(player, life) {
+		livesList.splice(livesList.indexOf(life), 1);
+		life.disableBody(true, true);
+		life.destroy(true, true);
+		this.addLife();
+	}
+
 	gameOver() {
-		game.scene.pause('game');
+		let textStyle = {
+			fontFamily: "Arial",
+			fontStyle: "bold",
+			fontSize: 264,
+			color: "#CC0000",
+			stroke: "#000000",
+			strokeThickness: 6
+		};
+		this.txtWasted = this.add.text(1920 / 2, 1080 / 2, 'W A S T E D', textStyle).setOrigin(0.5);
+		this.txtWasted.angle = -20;
+
+		if (score > Models.score) {
+			Models.score = score;
+		}
+
+		game.scene.stop('game');
+		game.scene.resume('menu');
 	}
 
 	startEggMode() {
@@ -238,21 +343,45 @@ export default class GameScene extends BaseScene {
 		isChick = false;
 		eggFinishTime = timeMS + eggDuration;
 		this.txtEggMode.visible = true;
+		cdRect.visible = true;
+		cdBack.visible = true;
 		player.anims.play('egg', true);
+		this.cameras.main.tint = 0xffffff
 		// TODO switch to egg;
 	}
 
 	switchToChick() {
 		if (isChick) return;
 		eggParts = 0;
+		this.txtParts.text = 'parts: ' + eggParts.toString() + "/3";
 		console.log('chick mode');
 		player.anims.play('right', true);
 		eggFinishTime = 0;
 		isChick = true;
 		this.txtEggMode.visible = false;
+		cdRect.visible = false;
+		cdBack.visible = false;
 	}
 
 	removeLife() {
-		// TODO remove live
+		if (lives === 0) {
+			this.gameOver();
+		} else {
+			lives--;
+			this.txtLives.text = 'lives: ' + lives.toString();
+			this.cameras.main.shake(300, 0.01);
+		}
+		// TODO art
+	}
+
+	addLife() {
+		lives++;
+		this.txtLives.text = 'lives: ' + lives.toString();
+		this.cameras.main.flash(250, 150, 255, 150);
+		// TODO art
+	}
+
+	onBtnFullScreen() {
+		game.scale.toggleFullscreen();
 	}
 }

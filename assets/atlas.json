@@ -1,0 +1,167 @@
+{
+	"textures": [
+		{
+			"image": "atlas.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 1024,
+				"h": 1024
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "bitmaps/EndGameTable.png",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 726,
+						"h": 637
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 726,
+						"h": 637
+					},
+					"frame": {
+						"x": 1,
+						"y": 1,
+						"w": 726,
+						"h": 637
+					}
+				},
+				{
+					"filename": "bitmaps/btn_green_over",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 270,
+						"h": 75
+					},
+					"spriteSourceSize": {
+						"x": 1,
+						"y": 1,
+						"w": 269,
+						"h": 74
+					},
+					"frame": {
+						"x": 729,
+						"y": 1,
+						"w": 269,
+						"h": 74
+					}
+				},
+				{
+					"filename": "bitmaps/btn_green_normal",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 270,
+						"h": 74
+					},
+					"spriteSourceSize": {
+						"x": 1,
+						"y": 0,
+						"w": 266,
+						"h": 74
+					},
+					"frame": {
+						"x": 729,
+						"y": 77,
+						"w": 266,
+						"h": 74
+					}
+				},
+				{
+					"filename": "platform1",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 640,
+						"h": 164
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 640,
+						"h": 164
+					},
+					"frame": {
+						"x": 1,
+						"y": 640,
+						"w": 640,
+						"h": 164
+					}
+				},
+				{
+					"filename": "egg",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 51,
+						"h": 61
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 51,
+						"h": 61
+					},
+					"frame": {
+						"x": 1,
+						"y": 806,
+						"w": 51,
+						"h": 61
+					}
+				},
+				{
+					"filename": "bomb1",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 70,
+						"h": 50
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 70,
+						"h": 50
+					},
+					"frame": {
+						"x": 1,
+						"y": 869,
+						"w": 70,
+						"h": 50
+					}
+				},
+				{
+					"filename": "egg_part",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 51,
+						"h": 36
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 51,
+						"h": 36
+					},
+					"frame": {
+						"x": 54,
+						"y": 806,
+						"w": 51,
+						"h": 36
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "https://www.codeandweb.com/texturepacker",
+		"version": "3.0",
+		"smartupdate": "$TexturePacker:SmartUpdate:4c472d326eec92f783ae4b235411c28b:d9ecb6cd8b99a4feefbd035c96946686:cbce6b53f0f49e0bf15173c25c41f876$"
+	}
+}
